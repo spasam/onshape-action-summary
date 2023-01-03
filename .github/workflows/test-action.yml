@@ -1,12 +1,14 @@
 name: 'test-action-summary'
 description: 'Test summary wf'
-inputs:
-outputs:
 
-runs:
-  steps:
-    - name: test-summary
-      uses: onshape/onshape-action-summary@onshape-action-summary
-      shell: bash
-      run: |
-        echo "Running..."
+on:
+  workflow_dispatch:
+
+jobs:
+  run-test:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: run-test
+        run: |
+          echo "Running..."
+      - uses: onshape/onshape-action-summary@main
