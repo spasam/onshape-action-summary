@@ -1,0 +1,9 @@
+name: 'onshape-action-summary'
+description: 'Return summary info of caller action'
+
+runs:
+  shell: bash
+  run: |
+    bash ${GITHUB_WORKSPACE}/action-summary.bash
+  env:
+    INPUT_STRING: "Hello there"
