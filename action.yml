@@ -1,0 +1,10 @@
+name: 'onshape-action-summary'
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+    - name: get-summary
+      run: |
+        bash ${{ github.action_path }}/action-summary.bash >> $GITHUB_STEP_SUMMARY
+      shell: bash

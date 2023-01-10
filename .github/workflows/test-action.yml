@@ -1,14 +1,28 @@
 name: 'test-action-summary'
-description: 'Test summary wf'
 
 on:
   workflow_dispatch:
+    inputs:
+      changeset:
+        default: false
+        type: boolean
+      tagbranch:
+        default: false
+        type: boolean
+      text:
+        default: ""
+        type: string
 
 jobs:
   run-test:
     runs-on: ubuntu-20.04
     steps:
-      - name: run-test
+      - uses: actions/checkout@v3
+      - name: Run test
         run: |
           echo "Running..."
-      - uses: onshape/onshape-action-summary@main
+      - uses: onshape/onshape-action-summary@erousseau-build-actions
+        env:
+            CHANGESET: ${{ github.event.inputs.changeset }}
+            TAGBRANCH: ${{ github.event.inputs.tagbranch }}
+            TEXT: ${{ github.event.inputs.text }}

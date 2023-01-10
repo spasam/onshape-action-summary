@@ -1,32 +1,61 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
+set +x
 
-set -o errexit
-set -o pipefail
-set -o xtrace
+echo "## \`${GITHUB_WORKFLOW}\` Finished"
+echo "Using branch \`${GITHUB_REF_NAME}\`"
 
-# ${to} can be a space separated list of email addreses
-#btPython3 buildSrc/tools/python/send-build-change-report ${to}
+if [[ $NPM == "true" ]]
+then
+    if [[ -f "./package.json" ]]
+    then
+        name=`node -p "require('./package.json').name"`
+        version=`node -p "require('./package.json').version"`
 
-# Summary
-'
-{
-    lastSHA=${LAST_SUCCESSFUL_COMMIT:0:$SHORT_SHA_LENGTH}
-    shortSHA=$(gitShortSHA)
-    range="${lastSHA}...${shortSHA}"
+        echo "NPM: \`${name} - ${version}\`"
+    else
+        echo "NPM not found"
+    fi
+fi
 
-    echo "Building \`${GITHUB_REF_NAME}\` [newton@${shortSHA}](https://github.com/${GITHUB_REPOSITORY}/commit/$(gitSHA)) as ${NEWTON_VERSION}.${GITHUB_RUN_NUMBER}.${shortSHA}"
-    echo
-    echo "Change set [${range}](https://github.com/${GITHUB_REPOSITORY}/compare/${range})"
+if [[ "${TEXT}" ]]
+then
+     echo $(eval "echo $TEXT")
+fi
+
+tagname="${GITHUB_REF_NAME}/latest"
+
+if [[ $TAGBRANCH == "true" ]]
+then
+    git tag -d $tagname
+    git push --delete origin $tagname
+    git tag $tagname
+    git push origin --tags
+    echo "Tagged ${tagname}"
+fi
+
+echo "Is \`${GITHUB_REF_NAME}\` master, main or rel?"
+if [[ ${GITHUB_REF_NAME} == "master" || ${GITHUB_REF_NAME} == "main" || ${GITHUB_REF_NAME} == rel-1.* ]]
+then
+    echo "Yes"
+    git tag -d $tagname
+    git push --delete origin $tagname
+    git tag $tagname
+    git push origin --tags
+    echo "Tagged ${tagname}"
+else
+    echo "No"
+fi
+
+if [[ $CHANGESET == "true" ]]
+then
+    #echo "Last commit: ${LAST_SUCCESSFUL_COMMIT}"
+    echo "Changeset:"
     echo '```'
-    git log --cherry-pick --first-parent --reverse ${LAST_SUCCESSFUL_COMMIT}..HEAD
+    if [[ $LAST_SUCCESSFUL_COMMIT ]]
+    then
+        git log --cherry-pick --first-parent --reverse ${LAST_SUCCESSFUL_COMMIT}..HEAD
+    else
+        git log -n 1
+    fi
     echo '```'
-
-} >> $GITHUB_STEP_SUMMARY
-'
-
-# Summary
-{
-    echo "OUTPUT: "
-    echo ${INPUT_STRING}
-
-} >> $GITHUB_STEP_SUMMARY
+fi
