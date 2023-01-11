@@ -2,7 +2,8 @@
 set +x
 
 echo "## \`${GITHUB_WORKFLOW}\` Finished"
-echo "Using branch \`${GITHUB_REF_NAME}\`"
+echo "Used branch \`${GITHUB_REF_NAME}\`"
+
 
 if [[ $NPM == "true" ]]
 then
@@ -22,40 +23,37 @@ then
      echo $(eval "echo $TEXT")
 fi
 
-tagname="${GITHUB_REF_NAME}/latest"
-
-if [[ $TAGBRANCH == "true" ]]
-then
-    git tag -d $tagname
-    git push --delete origin $tagname
-    git tag $tagname
-    git push origin --tags
-    echo "Tagged ${tagname}"
-fi
-
-echo "Is \`${GITHUB_REF_NAME}\` master, main or rel?"
 if [[ ${GITHUB_REF_NAME} == "master" || ${GITHUB_REF_NAME} == "main" || ${GITHUB_REF_NAME} == rel-1.* ]]
 then
-    echo "Yes"
-    git tag -d $tagname
-    git push --delete origin $tagname
-    git tag $tagname
-    git push origin --tags
-    echo "Tagged ${tagname}"
+    mainbranch="true"
 else
-    echo "No"
+    mainbranch="false"
 fi
+
+tagname="${GITHUB_REF_NAME}/latest"
+git fetch --all --tags
 
 if [[ $CHANGESET == "true" ]]
 then
-    #echo "Last commit: ${LAST_SUCCESSFUL_COMMIT}"
-    echo "Changeset:"
-    echo '```'
-    if [[ $LAST_SUCCESSFUL_COMMIT ]]
+    if [[ $(git tag -l ${tagname}) ]]
     then
-        git log --cherry-pick --first-parent --reverse ${LAST_SUCCESSFUL_COMMIT}..HEAD
+        echo "Commits since previous \`${tagname}\` (most recent at bottom):"
+        echo '```'
+        git log --cherry-pick --first-parent --reverse ${tagname}..HEAD --compact-summary
+        echo '```'
     else
-        git log -n 1
+        echo "Most recent commit:"
+        echo '```'
+        git log -n 1 --compact-summary
+        echo '```'
     fi
-    echo '```'
+fi
+
+if [[ $mainbranch == "true" || $TAGBRANCH == "true" ]]
+then
+    #git tag -d $tagname
+    git push --delete origin $tagname
+    git tag $tagname
+    git push origin --tags
+    echo "Updated tag \`${tagname}\`"
 fi
