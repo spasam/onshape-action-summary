@@ -1,28 +1,17 @@
-name: 'test-action-summary'
+name: Greeting from Mona
 
-on:
-  workflow_dispatch:
-    inputs:
-      changeset:
-        default: false
-        type: boolean
-      tagbranch:
-        default: false
-        type: boolean
-      text:
-        default: ""
-        type: string
+on: push
 
 jobs:
-  run-test:
-    runs-on: ubuntu-20.04
+  my-job:
+    name: My Job
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Run test
-        run: |
-          echo "Running..."
-      - uses: onshape/onshape-action-summary@erousseau-build-actions
+      - name: Print a greeting
         env:
-            CHANGESET: ${{ github.event.inputs.changeset }}
-            TAGBRANCH: ${{ github.event.inputs.tagbranch }}
-            TEXT: ${{ github.event.inputs.text }}
+          MY_VAR: Hi there! My name is
+          FIRST_NAME: Mona
+          MIDDLE_NAME: The
+          LAST_NAME: Octocat
+        run: |
+          echo $MY_VAR $FIRST_NAME $MIDDLE_NAME $LAST_NAME.
